@@ -113,6 +113,7 @@
     <p>・⭐スターは、まわりを全部消して 自分も消えるよ。</p>
     <p>・レベルが上がると、形がふえて、速くなって、下からせり上がる。</p>
     <p>・🪨いわは じゃんけんで消せない。<b>⭐でだけ</b>消せるよ。</p>
+    <p>・🎁<b>スペシャルボックス</b>は、ふれたブロックの種類を<b>盤から ぜんぶ消す</b>！ いわ にふれれば いわ も全部。<b>4れんさ</b>で ごほうびにもらえるよ。</p>
   </div>
   <button id="btnHowBack" class="ghost" type="button">もどる</button>
 </div>
@@ -151,6 +152,7 @@
      勝った相手は消える。落ちてきたほうは消えない。
    ・消えたところに上のブロックが落ちたら、落ちたブロックがまた勝負 → れんさ
    ・⭐ はまわりを全部消して、自分も消える。🪨 いわ は ⭐ でしか消せない
+   ・🎁 スペシャルボックスは、ふれた種類を盤から全部消して、自分も消える(4れんさで ごほうび)
    ・横1列そろい消しは しない(消えたら上が詰めるので、勝手にそろってしまうため)
    ・レベルが上がると 1コ→2コ→3コ→4コ→5コの形、速さアップ、下からせり上がり
    ========================================================= */
@@ -162,19 +164,23 @@ var CONFIG = {
   DAS: 0.17, ARR: 0.05, SOFT: 0.035,
   FLASH: 0.32, FALL: 0.17,
   STAR_RATE: 0.045,           // レベル2から ⭐ が混ざる確率(1つのブロックごと)
+  BOX_FROM: 3, BOX_RATE: 0.012, // レベル3から 🎁スペシャルボックス が混ざる確率(1つの形ごと)
+  BOX_REWARD_CHAIN: 5,        // この数のれんさで 🎁 がごほうびにもらえる
   RISE_FROM: 5,               // このレベルから 下からせり上がる
   STONE_FROM: 7,              // このレベルから せり上がりに 🪨いわ が混ざる
   LINE_CLEAR: false           // 横1列そろい消し(消えたら上が詰めるので 勝手にそろってしまう → 使わない)
 };
 var COLS = CONFIG.COLS, ROWS = CONFIG.ROWS;
-var HANDS = ['✊', '✌️', '✋', '⭐', '🪨'];
+var HANDS = ['✊', '✌️', '✋', '⭐', '🪨', '🎁'];
+var KIND_NAME = ['グー', 'チョキ', 'パー', 'スター', 'いわ', 'ボックス'];
 var EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Android Emoji",sans-serif';
 var PAL = [
   { a: '#ff9a9a', b: '#e8384f', e: '#8a1530', p: '#ff6b81' },   // グー
   { a: '#8fd3ff', b: '#2f80ed', e: '#123f80', p: '#5aa9ff' },   // チョキ
   { a: '#9ff0a8', b: '#2fb350', e: '#11602a', p: '#51d06f' },   // パー
   { a: '#ffe8a3', b: '#b45cf0', e: '#5a1f80', p: '#ffd43b' },   // スター
-  { a: '#b9b4c9', b: '#6c6585', e: '#2e2a3d', p: '#9a94b0' }    // いわ
+  { a: '#b9b4c9', b: '#6c6585', e: '#2e2a3d', p: '#9a94b0' },   // いわ
+  { a: '#fff3a0', b: '#ff5fc8', e: '#7a1f5f', p: '#ffe066' }    // スペシャルボックス
 ];
 var DX = [1, -1, 0, 0], DY = [0, 0, 1, -1];
 
@@ -210,7 +216,7 @@ function pool(lv) {
 }
 var LEVEL_MSG = {
   2: ['ブロックが 2コに！', '回すと グー・チョキ・パーの場所が入れかわるよ'],
-  3: ['3コの形が 出てくる！', 'L字は 角で2方向に勝てる'],
+  3: ['3コの形と 🎁が登場！', '🎁スペシャルボックスは ふれた種類を ぜんぶ消す'],
   4: ['4コの形が 登場！', 'ホールドで 形をとっておこう'],
   5: ['下から せり上がる！', 'あと何手で上がるかは 盤の右上に出るよ'],
   7: ['いわ が まざる！', 'いわは じゃんけんで消せない。⭐でだけ消せる'],
@@ -224,7 +230,7 @@ function levelFor(cleared) { var lv = 1; while (lv < 20 && cleared >= levelStart
 /* ---------- 遊びの決まり(絵と分けた 純粋な関数。確認テストでも使う) ---------- */
 var L = {
   beats: function (a, b) {                 // a が b に勝つか(4 = いわ: だれにも勝たず、⭐にだけ負ける)
-    if (a === 4) return false;
+    if (a === 4 || a === 5 || b === 5) return false;
     if (b === 4) return a === 3;
     if (a === 3) return b !== 3;
     if (b === 3) return false;
@@ -253,6 +259,22 @@ var L = {
       var p = att[i], a = g[p.y] && g[p.y][p.x];
       if (!a) continue;
       if (a.h === 3 && !seen[p.x + ',' + p.y]) { seen[p.x + ',' + p.y] = 1; out.push({ x: p.x, y: p.y, h: 3, ax: p.x, ay: p.y, self: true }); }
+      if (a.h === 5) {
+        // 🎁 スペシャルボックス: ふれた種類を 盤から ぜんぶ消して、自分も消える(落ちてきた仲間は消えない)
+        var kinds = {}, any = false;
+        for (k = 0; k < 4; k++) {
+          var bx = p.x + DX[k], by = p.y + DY[k];
+          if (!L.inside(bx, by) || mark[bx + ',' + by]) continue;
+          var nb = g[by][bx];
+          if (nb && nb.h !== 5) { kinds[nb.h] = 1; any = true; }
+        }
+        if (!seen[p.x + ',' + p.y]) { seen[p.x + ',' + p.y] = 1; out.push({ x: p.x, y: p.y, h: 5, ax: p.x, ay: p.y, self: true, box: true, kinds: kinds }); }
+        if (any) for (var yy = 0; yy < ROWS; yy++) for (var xx = 0; xx < COLS; xx++) {
+          var cc = g[yy][xx], kk = xx + ',' + yy;
+          if (cc && kinds[cc.h] && !mark[kk] && !seen[kk]) { seen[kk] = 1; out.push({ x: xx, y: yy, h: cc.h, ax: p.x, ay: p.y, box: true }); }
+        }
+        continue;
+      }
       for (k = 0; k < 4; k++) {
         var nx = p.x + DX[k], ny = p.y + DY[k], key = nx + ',' + ny;
         if (!L.inside(nx, ny) || mark[key] || seen[key]) continue;
@@ -328,6 +350,7 @@ function makePiece(lv) {
   var S = SHAPES[key], cells = [];
   for (i = 0; i < S.c.length; i++) cells.push({ x: S.c[i][0], y: S.c[i][1], h: rnd(3) });
   if (lv >= 2 && Math.random() < CONFIG.STAR_RATE * cells.length / 2) cells[rnd(cells.length)].h = 3;
+  else if (lv >= CONFIG.BOX_FROM && Math.random() < CONFIG.BOX_RATE) cells[rnd(cells.length)].h = 5;
   return { key: key, n: S.n, cells: cells, x: 0, y: 0 };
 }
 function rotCells(p, dir) {
@@ -398,6 +421,10 @@ var SFX = {
   },
   line: function () { var f = [523, 659, 784, 1047]; for (var i = 0; i < 4; i++) tone(f[i], 0.3, 'triangle', 0.11, 0, i * 0.05); },
   level: function () { var f = [659, 784, 988, 1319]; for (var i = 0; i < 4; i++) tone(f[i], 0.18, 'square', 0.06, 0, i * 0.09); },
+  box: function () {
+    tone(300, 0.5, 'sawtooth', 0.06, 1800);
+    for (var i = 0; i < 6; i++) tone(SCALE[2 + i], 0.22, 'triangle', 0.12, 0, 0.12 + i * 0.05);
+  },
   rise: function () { tone(90, 0.3, 'sawtooth', 0.07, 55); },
   over: function () { var f = [523, 440, 349, 262]; for (var i = 0; i < 4; i++) tone(f[i], 0.3, 'triangle', 0.12, 0, i * 0.16); }
 };
@@ -510,6 +537,8 @@ function makeBlock(i, px) {
   rr(g, p, p, px - 2 * p, px - 2 * p, r); g.fillStyle = P.e; g.fill();
   var gr = g.createLinearGradient(0, 0, 0, px);
   gr.addColorStop(0, P.a); gr.addColorStop(1, P.b);
+  if (i === 5) { gr = g.createLinearGradient(0, 0, px, px); gr.addColorStop(0, '#ffe066'); gr.addColorStop(0.35, '#ff9ee0');
+    gr.addColorStop(0.7, '#b48cff'); gr.addColorStop(1, '#5fc8ff'); }
   rr(g, p, p, px - 2 * p, px - 2 * p - px * 0.08, r); g.fillStyle = gr; g.fill();
   g.globalAlpha = 0.35; g.fillStyle = '#fff'; rr(g, px * 0.16, px * 0.1, px * 0.68, px * 0.16, px * 0.08); g.fill();
   g.globalAlpha = 0.22; g.beginPath(); g.arc(px / 2, px * 0.48, px * 0.33, 0, 6.2832); g.fill();
@@ -534,7 +563,7 @@ function makeEmoji(i, px) {
 function buildSprites() {
   var px = Math.max(8, Math.ceil(LY.cs * VIEW.s)), ep = Math.max(8, Math.ceil(26 * VIEW.s));
   SP = []; EMO = [];
-  for (var i = 0; i < 5; i++) { SP.push(makeBlock(i, px)); EMO.push(makeEmoji(i, ep)); }
+  for (var i = 0; i < 6; i++) { SP.push(makeBlock(i, px)); EMO.push(makeEmoji(i, ep)); }
   if (!STARS.length) for (var k = 0; k < 46; k++) STARS.push({ x: Math.random() * CONFIG.W, y: Math.random(), r: Math.random() * 1.4 + 0.3, p: Math.random() * 6 });
 }
 cv.addEventListener('contextrestored', buildSprites);
@@ -548,7 +577,7 @@ function newGame() {
   }
   G.score = 0; G.shown = 0; G.level = 1; G.cleared = 0; G.beaten = 0; G.maxChain = 0; G.pieces = 0;
   G.hold = null; G.holdUsed = false; G.parts = []; G.texts = []; G.banner = null; G.chainFx = null;
-  G.res = null; G.rise = null; G.riseIn = 0; G.deadT = 0; G.overShown = false; G.shake = 0; G.t = 0;
+  G.res = null; G.rise = null; G.riseIn = 0; G.boxSeen = false; G.boxFx = null; G.deadT = 0; G.overShown = false; G.shake = 0; G.t = 0;
   G.next = [makePiece(1), makePiece(1)];
   G.banner = { title: 'スタート！', sub: 'となりに勝って 消していこう', t: 0, life: 2.2 };
   spawn();
@@ -559,6 +588,10 @@ function spawn() {
   placeAtTop(p);
   G.piece = p;
   if (!L.fits(G.grid, p.cells, p.x, p.y)) { die(); return; }
+  if (hasBox(p) && !G.boxSeen) {
+    G.boxSeen = true;
+    G.banner = { title: '🎁 スペシャルボックス！', msg: 'ふれた種類を ぜんぶ消す', sub: '消えるブロックは ぷるぷる光って教えてくれるよ', t: 0, life: 3.2 };
+  }
   G.vis = { x: p.x, y: p.y - 0.7 };
   G.fallT = 0; G.lockT = 0; G.lockResets = 0; G.phase = 'fall';
 }
@@ -655,7 +688,7 @@ function applyStep(st) {
   for (var i = 0; i < n; i++) {
     var h = st.hits[i], c = cellCenter(h.x, h.y);
     cx += c.x; cy += c.y;
-    burst(c.x, c.y, PAL[h.h].p, st.kind === 'line' ? 6 : 10);
+    burst(c.x, c.y, PAL[h.h].p, n > 15 ? 4 : st.kind === 'line' ? 6 : 10);
   }
   cx /= n; cy /= n;
   floatText(cx, cy, '+' + pts, st.chain > 1 ? '#ffe066' : '#fff', st.chain > 1 ? 24 : 20);
@@ -666,7 +699,26 @@ function applyStep(st) {
     buzz(st.chain >= 3 ? [15, 30, 25] : 15);
   } else buzz(10);
   if (st.chain >= 3 || n >= 4) G.shake = Math.max(G.shake, 0.35);
+  // 🎁 が発動したとき
+  for (var b = 0; b < n; b++) {
+    var bh = st.hits[b];
+    if (!bh.self || bh.h !== 5) continue;
+    var names = [];
+    for (var kk in bh.kinds) names.push(KIND_NAME[kk]);
+    var bc = cellCenter(bh.x, bh.y);
+    burst(bc.x, bc.y, '#ffe066', 24); burst(bc.x, bc.y, '#ff5fc8', 16);
+    if (names.length) {
+      G.boxFx = { x: bc.x, y: bc.y, t: 0, txt: names.join('と') + ' ぜんぶ消し！' };
+      SFX.box(); G.shake = Math.max(G.shake, 0.5); buzz([20, 30, 40]);
+    } else floatText(bc.x, bc.y - 20, 'からぶり…', '#ccc', 18);
+  }
+  // 大きな れんさの ごほうび: つぎのつぎ に 🎁
+  if (st.chain === CONFIG.BOX_REWARD_CHAIN && G.next[1] && !hasBox(G.next[1])) {
+    var np = G.next[1]; np.cells[rnd(np.cells.length)].h = 5;
+    floatText(LY.bx + COLS * LY.cs / 2, LY.by + ROWS * LY.cs * 0.45, 'ごほうび！ 🎁', '#ff9ee0', 24);
+  }
 }
+function hasBox(p) { for (var i = 0; i < p.cells.length; i++) if (p.cells[i].h === 5) return true; return false; }
 function afterResolve() {
   var nl = levelFor(G.cleared);
   if (nl > G.level) {
@@ -726,6 +778,7 @@ function updateFx(dt) {
   for (i = G.texts.length - 1; i >= 0; i--) { G.texts[i].t += dt; if (G.texts[i].t >= G.texts[i].life) G.texts.splice(i, 1); }
   if (G.banner) { G.banner.t += dt; if (G.banner.t >= G.banner.life) G.banner = null; }
   if (G.chainFx) { G.chainFx.t += dt; if (G.chainFx.t >= 1.1) G.chainFx = null; }
+  if (G.boxFx) { G.boxFx.t += dt; if (G.boxFx.t >= 1.5) G.boxFx = null; }
   if (G.land) { G.land.t += dt; if (G.land.t > 0.25) G.land = null; }
   if (G.trail) { G.trail.t += dt; if (G.trail.t > 0.22) G.trail = null; }
   G.shake = Math.max(0, G.shake - dt);
@@ -1041,6 +1094,7 @@ function drawResolve() {
       for (i = 0; i < st.hits.length; i++) {
         var hh = st.hits[i]; if (hh.self) continue;
         var a = cellCenter(hh.ax, hh.ay), b = cellCenter(hh.x, hh.y);
+        if (hh.box) { ctx.strokeStyle = 'rgba(255,158,224,' + (0.85 * k) + ')'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); continue; }
         ctx.beginPath(); ctx.moveTo((a.x * 2 + b.x) / 3, (a.y * 2 + b.y) / 3); ctx.lineTo((a.x + b.x * 2) / 3, (a.y + b.y * 2) / 3); ctx.stroke();
       }
     } else {
@@ -1180,6 +1234,22 @@ function drawFx() {
     ctx.restore();
   }
   var bcx = LY.bx + COLS * LY.cs / 2;
+  if (G.boxFx) {
+    var X = G.boxFx, xk = X.t / 1.5;
+    // ひろがる虹の輪
+    for (var ring = 0; ring < 3; ring++) {
+      var rk = xk * 1.6 - ring * 0.18; if (rk <= 0 || rk >= 1) continue;
+      ctx.strokeStyle = ['rgba(255,224,102,', 'rgba(255,95,200,', 'rgba(143,211,255,'][ring] + (1 - rk) + ')';
+      ctx.lineWidth = 6 * (1 - rk) + 1; ctx.beginPath(); ctx.arc(X.x, X.y, 20 + rk * LY.cs * 9, 0, 6.283); ctx.stroke();
+    }
+    var xs = xk < 0.12 ? 0.4 + xk / 0.12 * 0.75 : 1.15 - (xk - 0.12) * 0.15;
+    ctx.save(); ctx.globalAlpha = xk > 0.8 ? (1 - xk) / 0.2 : 1;
+    ctx.translate(bcx, LY.by + ROWS * LY.cs * 0.2); ctx.scale(xs, xs); ctx.rotate(0.04);
+    ctx.font = '900 30px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    var xg = ctx.createLinearGradient(-120, 0, 120, 0); xg.addColorStop(0, '#ffe066'); xg.addColorStop(0.5, '#ff9ee0'); xg.addColorStop(1, '#8fd3ff');
+    ctx.lineWidth = 8; ctx.strokeStyle = '#2a0f3f'; ctx.strokeText(X.txt, 0, 0); ctx.fillStyle = xg; ctx.fillText(X.txt, 0, 0);
+    ctx.restore();
+  }
   if (G.chainFx) {
     var c = G.chainFx, kk = c.t / 1.1, s2 = kk < 0.15 ? 0.4 + kk / 0.15 * 0.8 : 1.2 - (kk - 0.15) * 0.25;
     ctx.save(); ctx.globalAlpha = kk > 0.75 ? (1 - kk) / 0.25 : 1;
@@ -1261,7 +1331,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   // はじめの画面(Google Play 風: インストール / このまま遊ぶ)。install.js が出す。ホーム画面から開いたときは出ない
   window.INSTALL_GATE = { id: 'teotosi', name: 'テオトシ', icon: 'icon-192.png', tagline: 'じゃんけん落ちものパズル',
     desc: 'グー・チョキ・パーのブロックが落ちてくる！となりに勝てば消える、じゃんけん落ちものパズル。',
-    points: ['となりに勝つと消える、新しい落ちもの', 'れんさ・⭐スター・せり上がりで どんどん熱く', '電波がなくても遊べる'],
+    points: ['となりに勝つと消える、新しい落ちもの', '🎁スペシャルボックスで 同じ種類を ぜんぶ消し！', 'れんさ・⭐スター・せり上がりで どんどん熱く'],
     shots: ['shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg'], badges: ['無料', '広告なし', '登録なし'], color: '#ffc93c' };
 </script>
 <script src="install.js"></script>
