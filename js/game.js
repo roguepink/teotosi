@@ -194,6 +194,7 @@ function newGame() {
   G.shake = 0; G.t = 0; G.combo = 0; G.fever = 0; G.feverT = 0; G.missionNo = 0; G.missionsDone = 0; G.pinchCool = 0;
   G.boxSeen = false; G.bombSeen = false; G.ev = [];
   G.next = [makePiece(1), makePiece(1)];
+  G.mission = null;     // 前のゲームのおだいを消してから選ぶ(残っていると 選びなおしが終わらなかった)
   newMission();
   fxLayer.innerHTML = '';
   banner('スタート！', 'となりに勝って 消していこう', '同じ手が4つ つながっても 消えるよ', 'start', 2.4);
@@ -420,7 +421,8 @@ var MISSION_TYPES = ['kill', 'chain', 'naka', 'big', 'combo'];
 var REWARDS = [[6, '💣'], [5, '🎁'], [3, '⭐']];
 function newMission() {
   var n = G.missionNo, last = G.mission ? G.mission.type : '', t;
-  do { t = MISSION_TYPES[rnd(MISSION_TYPES.length)]; } while (t === last || (n === 0 && t !== 'kill'));
+  if (n === 0) t = 'kill';
+  else { var c = MISSION_TYPES.filter(function (x) { return x !== last; }); t = c[rnd(c.length)]; }
   var m = { type: t, prog: 0, goal: 1 };
   if (t === 'kill') { m.h = rnd(3); m.goal = Math.min(30, 6 + n * 2); m.text = KIND_NAME[m.h] + 'を' + m.goal + 'コ消す'; }
   else if (t === 'chain') { m.goal = Math.min(5, 2 + Math.floor(n / 3)); m.text = m.goal + 'れんさを出す'; }
