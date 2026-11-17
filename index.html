@@ -88,15 +88,15 @@
   #big { position: absolute; left: 50%; top: 26%; transform: translate(-50%, -50%); font-size: 42px; font-weight: 900; white-space: nowrap;
     pointer-events: none; opacity: 0; -webkit-text-stroke: 2px #2a0f3f; paint-order: stroke fill; filter: drop-shadow(0 4px 0 #2a0f3f); }
   #big.show { animation: bigIn 1.3s cubic-bezier(.2, .9, .3, 1.3) forwards; }
-  #big.chain { color: #ffb347; } #big.fever { color: var(--gold); font-size: 48px; } #big.box { color: #ff9ee0; font-size: 30px; } #big.bomb { color: #ff7b54; font-size: 46px; }
+  #big.g-chain { color: #ffb347; } #big.g-fever { color: var(--gold); font-size: 48px; } #big.g-box { color: #ff9ee0; font-size: 30px; } #big.g-bomb { color: #ff7b54; font-size: 46px; }
   @keyframes bigIn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(-8deg); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.15) rotate(-3deg); }
     30% { transform: translate(-50%, -50%) scale(1) rotate(-3deg); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -70%) scale(1) rotate(-3deg); } }
   #banner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(300px, 86%); padding: 14px 16px; text-align: center;
     background: rgba(15, 8, 35, .9); border: 2px solid rgba(255, 224, 102, .7); border-radius: 18px; pointer-events: none; opacity: 0; }
   #banner.show { animation: bannerIn 2.4s ease forwards; }
-  #banner.level, #banner.start { animation-duration: 2.8s; } #banner.special { animation-duration: 3s; border-color: #ff9ee0; }
-  #banner.fever { border-color: #ff6bd6; } #banner.mission { border-color: #7ee08f; }
-  #banner .bt { font-size: 26px; font-weight: 900; color: var(--gold); } #banner.mission .bt { color: #7ee08f; } #banner.special .bt { color: #ff9ee0; }
+  #banner.b-level, #banner.b-start { animation-duration: 2.8s; } #banner.b-special { animation-duration: 3s; border-color: #ff9ee0; }
+  #banner.b-fever { border-color: #ff6bd6; } #banner.b-mission { border-color: #7ee08f; }
+  #banner .bt { font-size: 26px; font-weight: 900; color: var(--gold); } #banner.b-mission .bt { color: #7ee08f; } #banner.b-special .bt { color: #ff9ee0; }
   #banner .bm { font-size: 17px; font-weight: 900; margin-top: 4px; } #banner .bs { font-size: 12px; opacity: .8; margin-top: 4px; font-weight: 700; }
   @keyframes bannerIn { 0% { opacity: 0; transform: translate(-50%, -40%) scale(.9); } 10% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
     16% { transform: translate(-50%, -50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -56%); } }
@@ -280,7 +280,7 @@
   window.INSTALL_GATE = { id: 'teotosi', name: 'テオトシ', icon: 'icon-192.png', tagline: 'じゃんけん落ちものパズル 3D',
     desc: 'グー・チョキ・パーの立体ブロックが落ちてくる！となりに勝てば消える、じゃんけん落ちものパズル。',
     points: ['となりに勝つ・同じ手が4つ で消える', 'フィーバー・おだい・🎁💣⭐ で大量消し', '電波がなくても遊べる'],
-    shots: ['shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg'], badges: ['無料', '広告なし', '登録なし'], color: '#ffc93c' };
+    shots: ['shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg', 'shots/5.jpg'], badges: ['無料', '広告なし', '登録なし'], color: '#ffc93c' };
 </script>
 <script src="install.js"></script>
 </body>

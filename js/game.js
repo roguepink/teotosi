@@ -466,7 +466,7 @@ var bigTimer = 0;
 function big(txt, cls) {
   var b = $('big');
   b.className = ''; void b.offsetWidth;
-  b.textContent = txt; b.className = 'show ' + (cls || '');
+  b.textContent = txt; b.className = 'show ' + (cls ? 'g-' + cls : '');
   clearTimeout(bigTimer); bigTimer = setTimeout(function () { b.className = ''; }, 1300);
 }
 var bannerTimer = 0;
@@ -477,7 +477,7 @@ function banner(title, msg, sub, cls, life) {
   var t = document.createElement('div'); t.className = 'bt'; t.textContent = title; b.appendChild(t);
   if (msg) { var m = document.createElement('div'); m.className = 'bm'; m.textContent = msg; b.appendChild(m); }
   if (sub) { var s = document.createElement('div'); s.className = 'bs'; s.textContent = sub; b.appendChild(s); }
-  b.className = 'show ' + (cls || '');
+  b.className = 'show ' + (cls ? 'b-' + cls : '');
   clearTimeout(bannerTimer); bannerTimer = setTimeout(function () { b.className = ''; }, (life || 2.4) * 1000);
 }
 
@@ -709,10 +709,11 @@ function pickRenderer() {
   VIEW2D.init(); useRenderer(VIEW2D);
 }
 var waited = 0;
-(function waitView() {
+function waitView() {
   if (window.VIEW3D || window.VIEW3D_FAIL || waited > 3000 || /2d/.test(location.hash)) { pickRenderer(); afterRenderer(); return; }
   waited += 50; setTimeout(waitView, 50);
-})();
+}
+setTimeout(waitView, 0);   // このファイルの準備が ぜんぶ終わってから始める
 function onResize() { if (R) R.resize(stage.clientWidth, stage.clientHeight); HUDC = {}; }
 addEventListener('resize', onResize);
 
