@@ -387,8 +387,8 @@ function dangerRows(n) {
 }
 function doRise() {
   for (var x = 0; x < COLS; x++) if (G.grid[0][x]) { die(); return; }
-  var stones = G.level >= 14 ? 2 : G.level >= CONFIG.STONE_FROM ? 1 : 0;
-  G.grid.shift(); G.grid.push(garbageRow(2, stones));
+  var stones = G.level >= 15 ? 3 : G.level >= 12 ? 2 : G.level >= CONFIG.STONE_FROM ? 1 : 0;
+  G.grid.shift(); G.grid.push(garbageRow(G.level >= 12 ? 1 : 2, stones));
   breakGroups(G.grid);
   G.rise = { t: 0 }; G.phase = 'rise'; SFX.rise(); G.shake = Math.max(G.shake, 0.2); buzz(20);
   G.riseIn = riseEvery(G.level);
@@ -424,7 +424,7 @@ function newMission() {
   if (n === 0) t = 'kill';
   else { var c = MISSION_TYPES.filter(function (x) { return x !== last; }); t = c[rnd(c.length)]; }
   var m = { type: t, prog: 0, goal: 1 };
-  if (t === 'kill') { m.h = rnd(3); m.goal = Math.min(30, 6 + n * 2); m.text = KIND_NAME[m.h] + 'を' + m.goal + 'コ消す'; }
+  if (t === 'kill') { m.h = rnd(3); m.goal = Math.min(40, 6 + n * 3); m.text = KIND_NAME[m.h] + 'を' + m.goal + 'コ消す'; }
   else if (t === 'chain') { m.goal = Math.min(5, 2 + Math.floor(n / 3)); m.text = m.goal + 'れんさを出す'; }
   else if (t === 'naka') { m.goal = 1 + Math.floor(n / 4); m.text = 'なかよし消し' + m.goal + '回'; }
   else if (t === 'big') { m.goal = Math.min(14, 5 + Math.floor(n / 2)); m.text = 'いっぺんに' + m.goal + 'コ消す'; }

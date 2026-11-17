@@ -11,7 +11,7 @@
 var CONFIG = {
   COLS: 8, ROWS: 14, DT: 1 / 60,
   BEST_KEY: 'teotosi-best', MUTE_KEY: 'teotosi-mute', BGM_KEY: 'teotosi-bgm',
-  LEVEL_BASE: 16, LEVEL_ADD: 3, MAX_LEVEL: 20,
+  LEVEL_BASE: 24, LEVEL_ADD: 4, MAX_LEVEL: 20,
   LOCK_DELAY: 0.5, LOCK_RESETS: 15,
   DAS: 0.17, ARR: 0.05, SOFT: 0.035,
   FLASH: 0.30, FALL: 0.17,
@@ -20,9 +20,9 @@ var CONFIG = {
   BOX_FROM: 3, BOX_RATE: 0.012,         // レベル3から 🎁
   BOMB_FROM: 4, BOMB_RATE: 0.018,       // レベル4から 💣
   BOX_REWARD_CHAIN: 5,                  // この れんさ で 🎁 のごほうび
-  RISE_FROM: 7, STONE_FROM: 10,         // せり上がり・いわ の始まり
+  RISE_FROM: 5, STONE_FROM: 8,          // せり上がり・いわ の始まり
   FEVER_MAX: 40, FEVER_TIME: 12,        // フィーバーゲージ と 続く秒数
-  PINCH_ROWS: 4, PINCH_COOL: 14         // 上から何段目まで積んだら たすけの💣 / 次まで何手あける
+  PINCH_ROWS: 4, PINCH_COOL: 22         // 上から何段目まで積んだら たすけの💣 / 次まで何手あける
 };
 var COLS = CONFIG.COLS, ROWS = CONFIG.ROWS;
 var K = { GU: 0, CHOKI: 1, PA: 2, STAR: 3, ROCK: 4, BOX: 5, BOMB: 6 };
@@ -73,15 +73,15 @@ var LEVEL_MSG = {
   2: ['ブロックが 2コに！', '回すと 手の場所が 入れかわるよ'],
   3: ['3コの形と 🎁 が登場！', '🎁は ふれた種類を ぜんぶ消す'],
   4: ['4コの形と 💣 が登場！', '💣は まわりを ドカンと消す'],
-  5: ['スピードアップ！', 'ゲージをためて フィーバーを ねらおう'],
-  7: ['下から せり上がる！', 'あと何手かは 盤の上に出るよ'],
-  8: ['5コの形が 登場！', 'なかよし消しで のりきろう'],
-  10: ['いわ が まざる！', 'いわは ⭐ 🎁 💣 でしか消えない']
+  5: ['下から せり上がる！', 'あと何手かは 盤の右上に出るよ'],
+  6: ['スピードアップ！', 'ゲージをためて フィーバーを ねらおう'],
+  8: ['5コの形と いわ が登場！', 'いわは ⭐ 🎁 💣 でしか消えない'],
+  12: ['いわ が ふえる！', 'なかよし消しで のりきろう']
 };
 var THEMES = ['ひるの空', 'ゆうやけ', 'よぞら', 'うちゅう', 'オーロラ'];
 function themeFor(lv) { return lv <= 3 ? 0 : lv <= 6 ? 1 : lv <= 9 ? 2 : lv <= 13 ? 3 : 4; }
 function fallInterval(lv) { return Math.max(0.08, 0.9 * Math.pow(0.88, lv - 1)); }
-function riseEvery(lv) { return Math.max(3, 10 - (lv - CONFIG.RISE_FROM)); }
+function riseEvery(lv) { return Math.max(2, 9 - (lv - CONFIG.RISE_FROM)); }
 function levelStart(lv) { var n = 0; for (var i = 1; i < lv; i++) n += CONFIG.LEVEL_BASE + CONFIG.LEVEL_ADD * (i - 1); return n; }
 function levelFor(cleared) { var lv = 1; while (lv < CONFIG.MAX_LEVEL && cleared >= levelStart(lv + 1)) lv++; return lv; }
 function isHand(h) { return h === 0 || h === 1 || h === 2; }
