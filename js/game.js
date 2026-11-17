@@ -918,6 +918,3 @@ window.TEOTOSI = { L: L, G: G, SHAPES: SHAPES, pool: pool, makePiece: makePiece,
   x.addEventListener('click', function () { try { localStorage.setItem(seenKey, '1'); } catch (e) {} bar.remove(); });
   bar.appendChild(x); addEventListener('load', function () { document.body.appendChild(bar); });
 })();
-if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-  addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
-}

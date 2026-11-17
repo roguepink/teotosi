@@ -283,5 +283,11 @@
     shots: ['shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg', 'shots/5.jpg'], badges: ['無料', '広告なし', '登録なし'], color: '#ffc93c' };
 </script>
 <script src="install.js"></script>
+<script>
+  // ホーム画面に入れたあと、電波がなくても開けるようにする登録
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+</script>
 </body>
 </html>
