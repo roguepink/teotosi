@@ -1,11 +1,12 @@
 'use strict';
 /* オフラインでも遊べるようにする(ホーム画面に入れたあと、電波がなくても起動する)。
-   ゲームは index.html 1枚で完結しているので、それと アイコン類だけを覚えておく。
+   ゲームの本体(index.html・js/・3D の部品 vendor/three)と アイコン類を覚えておく。
    ゲームを直しただけなら VERSION は そのままでいい(開くたびに、まずネットで最新を取りにいくので)。
    FILES(覚えるファイル)を変えたときだけ VERSION を 1つ上げる(古い覚えを 一斉に捨てる)。 */
-const VERSION = 'teotosi-v2';
+const VERSION = 'teotosi-3d-v1';
 const FILES = ['./', 'index.html', 'install.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'maskable-512.png', 'apple-touch-icon.png',
-  'shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg'];
+  'js/rules.js', 'js/game.js', 'js/view3d.js', 'vendor/three/build/three.module.js', 'vendor/three/build/three.core.js',
+  'shots/1.jpg', 'shots/2.jpg', 'shots/3.jpg', 'shots/4.jpg', 'shots/5.jpg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
